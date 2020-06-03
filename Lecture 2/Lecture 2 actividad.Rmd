@@ -1,0 +1,84 @@
+---
+title: "Class activitity"
+output: html_notebook
+---
+
+Mouse Allergen and Asthma Cohort Study (MAACS)
+
+“Are overweight individuals, as measured by body mass index (BMI), more susceptible than normal weight individuals to the harmful effects of PM2.5 on asthma symptoms?”
+
+https://laqm.defra.gov.uk/public-health/pm25.html
+
+NocturnalSymp, is the number of days in the past 2 weeks where the child experienced asthma symptoms (e.g. coughing, wheezing) while sleeping.
+
+```{r}
+library(readxl)
+library(ggplot2)
+```
+```{r}
+# xlsx files
+# maacs <- read.csv("bmi_pm25_no2_sim.csv")
+# str(maacs)
+# C:\Users\cesarasa\Documents\CASM stuff\Maestria Ciencia de Datos ITESO\Verano2020\Arboles de regresion\Lecture 2
+#C:\\Users\\cesarasa\\Documents\\CASM stuff\\Maestria Ciencia de Datos ITESO\\Verano2020\\Arboles de regresion\\Lecture 2\\bmi_pm25_no2_sim.csv"
+maacs <- read.csv("C:\\Users\\cesarasa\\Documents\\CASM stuff\\Maestria Ciencia de Datos ITESO\\Verano2020\\Arboles de regresion\\Lecture 2\\bmi_pm25_no2_sim.csv")
+str(maacs)
+```
+```{r}
+g <- ggplot(maacs, aes(logpm25, NocturnalSympt))
+summary(g)
+```
+```{r}
+g <- ggplot(maacs, aes(logpm25, NocturnalSympt))
+print(g)
+```
+```{r}
+g <- ggplot(maacs, aes(logpm25, NocturnalSympt))
+g + geom_point()
+```
+```{r}
+g + geom_point() + geom_smooth()
+```
+```{r}
+g + geom_point() + geom_smooth(method = "lm")
+```
+```{r}
+g + geom_point() +
+        geom_smooth(method = "lm") +
+        facet_grid(. ~ bmicat)
+```
+```{r}
+g + geom_point(color = "steelblue", size = 4, alpha = 1/2)
+```
+```{r}
+g + geom_point(aes(color = bmicat), size = 4, alpha = 1/2)
+```
+```{r}
+g + geom_point(aes(color = bmicat)) +
+        labs(title = "MAACS Cohort") +
+        labs(x = expression("log " * PM[2.5]), y = "Nocturnal Symptoms")
+```
+```{r}
+g + geom_point(aes(color = bmicat)) + theme_bw()
+```
+
+```{r}
+testdat <- data.frame(x = 1:100, y = rnorm(100))
+testdat[50,2] <- 100  ## Outlier!
+g <- ggplot(testdat, aes(x = x, y = y))
+g + geom_line()
+```
+```{r}
+g + geom_line() + ylim(-3, 3)
+```
+```{r}
+p <- g + geom_line() + coord_cartesian(ylim = c(-3, 3))
+p
+```
+
+```{r}
+p + annotate("text", x = c(45,55), y = c(2,2), label = c("here1", "here2"),
+             color = c("red", "blue"))
+```
+
+

@@ -1,0 +1,42 @@
+---
+title: "Actividad en clase"
+output: html_notebook
+---
+
+Graph the number of flighs
+
+```{r}
+# import libraries
+library(tidyverse)
+library(nycflights13)
+library(ggplot2)
+str(flights)
+```
+```{r}
+daily <- flights %>%
+  group_by(dest,day) %>%
+  summarize(count = n())
+daily
+daily$dest = factor(daily$dest)
+g <- ggplot(daily, aes(x = day, y = count, group=dest,color = dest, shape=dest)) + geom_point() + scale_shape_manual(values = rep(0:10,10)) 
+g + scale_y_continuous(trans='log2')
+#scale_y_continuous(trans=‘log2’)
+```
+```{r}
+g <- ggplot(daily, aes(x = day, y = count, color = dest)) + geom_line()
+g + scale_y_continuous(trans='log2')
+```
+```{r}
+daily$dest = factor(daily$dest)
+g <- ggplot(daily, aes(x = day, y = count, group=dest,color = dest, shape=dest)) + geom_point() + geom_line() + scale_shape_manual(values = rep(0:10,10))
+g + scale_y_continuous(trans='log2')
+```
+
+```{r}
+daily$dest = factor(daily$dest)
+random_dest = daily[sample(nrow(daily), 20),]
+# random_dest <- sample(daily$dest,10)
+g <- ggplot(daily, aes(x = day, y = count, group=dest,color = dest, shape=dest)) + geom_point() + geom_line() + scale_shape_manual(values = rep(0:10,10)) + geom_text(data = random_dest,color="black", size=2.5, aes(label=dest)) + scale_y_continuous(trans='log2')
+g
+```
+
