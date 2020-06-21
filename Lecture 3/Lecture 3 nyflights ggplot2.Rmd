@@ -1,0 +1,118 @@
+---
+title: "R Notebook"
+output: html_notebook
+date: "6/2/2020"
+author: Cesar A. Sanchez
+---
+
+```{r}
+library(nycflights13)
+ls("package:nycflights13")
+library(ggplot2)
+library(dplyr)
+```
+```{r}
+airlines_data <- airlines
+airports_data <- airports
+flights_data <- flights
+planes_data <- planes
+weather_data <- weather
+# Variables in flights dataset
+?weather
+head(weather)
+```
+
+```{r}
+ggplot(weather_data, aes(x = humid)) +
+  geom_histogram(binwidth = 3, color = "grey", fill = "red", alpha= 0.5) +
+  labs(x = "Temperature (degrees F)", y = "Count",
+       title = "New York City Airport Temperatures 2013")
+```
+
+
+```{r}
+head(airlines)
+```
+
+Histogram with all airports for temperature
+```{r}
+f <- flights_data %>%
+  filter(dep_delay <= 180) %>%
+  filter(dep_delay >= 10)
+#g <- ggplot(flights_data, aes(x = dep_delay < 180)) + scale_fill_brewer(palette = "Spectral")
+g <- ggplot(f, aes(x = dep_delay)) + scale_fill_brewer(palette = "Spectral")
+
+g + geom_histogram(aes(fill=carrier), 
+                   binwidth = 10, 
+                   col="black", 
+                   size=1) +  # change binwidth
+  labs(title="Histogram with Auto Binning", 
+       subtitle="Delay across different airlines") 
+```
+
+```{r}
+g + geom_histogram(aes(fill=carrier),
+                   bins=10,
+                   col="black", size = 0.1) +   # change number of bins
+  labs(title="Histogram with Fixed Bins",
+       subtitle="Delay across different airlines")
+```
+
+```{r}
+g <- ggplot(f,aes(carrier))
+g + geom_bar(aes(fill=origin),width=0.5) +
+  theme(axis.text.x = element_text(angle=65, vjust=0.7)) +
+  labs(title="Histogram on Categorical Variable",
+       subtitle="Airlines across NY Airports")
+```
+
+```{r}
+head(planes)
+```
+
+```{r}
+g <- ggplot(planes, aes(type))
+g + geom_density(aes(fill=factor(engines)), alpha=0.5) +
+    labs(title="Density plot",
+         subtitle= "", # "Engines per type of engine",
+         caption="Source: flights_data",
+         x="Airlines",
+         fill="# Engines")
+```
+```{r}
+flights_data
+```
+
+```{r}
+#f <- flights_data %>%
+#  filter(dep_delay <= 180) %>%
+#  filter(dep_delay >= 10)
+f <- flights_data %>%
+  filter(dep_delay >= 0) %>%
+  filter(dep_delay < 20)# %>%
+  # filter(origin == 'JFK')
+g <- ggplot(f, aes(carrier,dep_delay))
+g + geom_boxplot(varwidth=T, fill="dodgerblue", alpha = 0.5) +
+    labs(title="Box plot",
+         subtitle="Airlines with departure on time and max delay of 20min for all NY airports",
+         caption="Source: flights_data",
+         x="Airline",
+         y="Departure delay")
+```
+```{r}
+head(f)
+```
+
+```{r}
+f <- flights_data %>%
+  filter(dep_delay > 360) #%>%
+  #filter(dep_delay < )# %>%
+  # filter(origin == 'JFK')
+g <- ggplot(f, aes(carrier,dep_delay))
+g + geom_boxplot(aes(fill=factor(origin)), alpha = 0.5) +  scale_fill_brewer(palette = "Spectral") + theme(axis.text.x = element_text(angle=65, vjust=0.6)) +
+    labs(title="Box plot",
+         subtitle="Airlines with departure delay higer than 360min (6hrs) for all NY airports",
+         caption="Source: flights_data",
+         x="Airline",
+         y="Departure delay")
+```

@@ -1,0 +1,162 @@
+---
+title: "Class activity Lecture 4"
+author:"Cesar A. Sanchez"
+output:html_document
+  html_notebook: default
+  word_document: default
+---
+
+```{r}
+library(moderndive)
+library(tidyverse)
+library(ggplot2)
+?house_prices
+```
+
+```{r}
+view(house_prices)
+glimpse(house_prices)
+```
+
+```{r}
+p1 <- ggplot(house_prices, aes(x = price)) + geom_histogram(binwidth = 200000, color = 'white') + labs(x = 'price (USD)',title='House Price')
+p1
+```
+
+```{r}
+p2 <- ggplot(house_prices, aes(x = grade)) + geom_bar(aes(fill=grade))+ labs(x = 'grade',title='House grade') + theme(legend.position = 'none')
+p2
+```
+
+```{r}
+#p3 <- ggplot(house_prices, aes(x = floors)) + geom_bar(aes(fill=condition))+ labs(x = #'floors',title='floors') #+ theme(legend.position = 'none')
+#p3
+p3 <- ggplot(house_prices, aes(x = floors)) + geom_histogram(binwidth = 0.5, fill ='red',color = 'black')+ labs(x = 'floors',title='House floors')
+p3
+```
+
+```{r}
+p4 <- ggplot(house_prices, aes(x = bedrooms)) + geom_histogram(binwidth = 1, fill ='blue',color = 'black')+ labs(x = 'bedrooms',title='House bedrooms')
+p4
+```
+
+```{r}
+p5 <- ggplot(house_prices, aes(x = bathrooms)) + geom_histogram(binwidth = 0.5, fill ='blue',color = 'black')+ labs(x = 'bathrooms',title='House bathrooms')
+p5
+```
+
+
+```{r}
+p1 + p2 + p3
+```
+
+# add the variables on log scale
+
+```{r}
+house_prices_new <- house_prices %>%
+  mutate(log10_price = log10(price)) %>%
+  mutate(log10_bedrooms = log10(bedrooms+1)) %>%
+  mutate(log10_bathrooms = log10(bathrooms+1))
+glimpse(house_prices_new)
+```
+# Bedrooms analysis
+```{r}
+# before
+p_before_bedrooms <- ggplot(house_prices_new, aes(x = bedrooms)) + geom_histogram(bins = 30, fill ='blue',color = 'black')+ labs(x = 'bedrooms',title='House bedrooms')
+
+# after
+p_after_bedrooms <- ggplot(house_prices_new, aes(x = log10_bedrooms)) + geom_histogram(bins = 10, fill ='blue',color = 'black')+ labs(x = 'log10 bedrooms + 1',title='House log10 bedrooms')
+p_before_bedrooms
+p_after_bedrooms
+```
+# Bathrooms analysis
+```{r}
+# before
+p_before_bathrooms <- ggplot(house_prices_new, aes(x = bathrooms)) + geom_histogram(bins = 30, fill ='blue',color = 'black')+ labs(x = 'bathrooms',title='House bathrooms')
+
+# after
+p_after_bathrooms <- ggplot(house_prices_new, aes(x = log10_bathrooms)) + geom_histogram(bins = 10, fill ='blue',color = 'black')+ labs(x = 'log10 bathrooms',title='House log10 bathrooms + 1')
+p_before_bathrooms
+p_after_bathrooms
+```
+
+# grade analysis
+```{r}
+g <- ggplot(house_prices,aes(bathrooms))
+g + geom_bar(aes(fill=grade),width=0.5) +
+  theme(axis.text.x = element_text(angle=65, vjust=0.7)) +
+  labs(title="Histogram on Categorical Variable",
+       subtitle="House grade across bathrooms in house")
+```
+
+```{r}
+g <- ggplot(house_prices, aes(bathrooms))
+g + geom_density(aes(fill=factor(bathrooms)), alpha=0.5) +
+    labs(title="Density plot",
+         subtitle="Bathrooms Grouped by Number of bathrooms",
+         caption="Source: house_prices",
+         x="Bathrooms",
+         fill="# Baths")
+```
+
+```{r}
+g <- ggplot(house_prices, aes(grade))
+g + geom_density(aes(fill=factor(grade)), alpha=0.5) +
+    labs(title="Density plot",
+         subtitle="Bathrooms Grouped by Number of bathrooms",
+         caption="Source: house_prices",
+         x="Grades",
+         fill="# House grade")
+```
+
+```{r}
+g <- ggplot(house_prices_new, aes(grade, bathrooms))
+g + geom_boxplot(aes(fill=factor(grade))) +  scale_fill_brewer(palette = "Spectral") +
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) +
+  labs(title="Box plot",
+       subtitle="House bathrooms grouped by house grade",
+       caption="Source: house_prices_new",
+       x="House Grade",
+       y="# Bathrooms")
+```
+
+```{r}
+g <- ggplot(house_prices_new, aes(grade, bathrooms, color = grade))
+pc <- g + geom_violin() +
+  labs(title="Violin plot",
+       subtitle="House grade vs House bathrooms",
+       caption="Source: house_prices_new",
+       x="House Grade",
+       y="House bathrooms")
+pc
+pc + scale_color_brewer(palette="Spectral")
+```
+
+# Modeling
+```{r}
+"
+by grade
+ggplot(house_prices_new, aes(x=log10_bathrooms, y=log10_price, color = grade)) + geom_point(alpha = 0.2, size = 0.5) + labs(title = 'house prices in Seattle') + facet_wrap(~condition) + geom_smooth(method = 'lm')
+"
+ggplot(house_prices_new, aes(x=log10_bathrooms, y=log10_price, color = grade)) + geom_point(alpha = 0.2, size = 0.5) + labs(title = 'house prices in Seattle') + facet_wrap(~condition) + geom_smooth(method = 'lm')
+```
+
+
+
+```{r}
+price_prediction <- lm(log10_price ~ log10_bathrooms * grade, data = house_prices_new)
+parameters <- get_regression_table(price_prediction)
+parameters
+```
+
+```{r}
+params <- parameters$estimate
+prediction <- function(params, grade, indx) {
+output <- if(indx == 1) params[1] + params[2] *log10(grade) else (params[1] + params[1+indx]) +  (params[2] + params[5+indx]) *log10(grade)
+#return(10^(output) - 1) # going back to Dolars
+return(10^(output)-1) # going back to Dolars
+}
+# predict by mts and condition
+prediction(params, 0.5, 5)
+```
+
