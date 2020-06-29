@@ -1,0 +1,65 @@
+---
+title: "Iris versicolor data set with clustering"
+author: "Cesar A. Sanchez"
+date: "6/23/2020"
+output: html_document
+---
+
+```{r}
+library(datasets)
+head(iris)
+```
+
+```{r}
+?iris
+```
+
+```{r}
+library(ggplot2)
+ggplot(iris, aes(Petal.Length, Petal.Width, color=Species))  + geom_point()
+```
+
+```{r}
+# features <- iris$Sepal.Length
+# features <- select(iris,Petal.Length,Petal.Width)
+# features
+# iris_clustering <- kmeans(features, centers = 3, nstart = 3)
+iris_clustering <- kmeans(iris[,3:4], centers = 3, nstart = 3)
+str(iris_clustering)
+```
+
+```{r}
+# Extract cluster centers
+# centers <- as_tibble(iris_centers$centers)
+# iris_centers <- iris_clustering$centers
+iris_centers <- as_tibble(iris_clustering$centers)
+glimpse(iris_centers)
+table(iris_clustering$cluster, iris$Species)
+```
+
+```{r}
+iris_redefine <- data.frame(Petal.Length  = iris_clustering$cluster, Petal.Width = iris_clustering$cluster, centroid = iris_clustering$cluster)
+
+iris_redefine <- within(iris_redefine,Petal.Length[centroid==1] <- iris_centers$Petal.Length[1])
+iris_redefine <- within(iris_redefine,Petal.Length[centroid==2] <- iris_centers$Petal.Length[2])
+iris_redefine <- within(iris_redefine,Petal.Length[centroid==3] <- iris_centers$Petal.Length[3])
+iris_redefine <- within(iris_redefine,Petal.Width[centroid==1] <- iris_centers$Petal.Width[1])
+iris_redefine <- within(iris_redefine,Petal.Width[centroid==2] <- iris_centers$Petal.Width[2])
+iris_redefine <-within(iris_redefine,Petal.Width[centroid==3] <- iris_centers$Petal.Width[3])
+
+iris_redefine
+```
+
+
+```{r}
+# g <- ggplot(iris, aes(Petal.Length, Petal.Width, color=Species)) +
+#   ggplot(iris_redefine, aes(Petal.Length, Petal.Width, color=centroid)) +
+#   geom_point()
+# g
+g <- ggplot(iris) +
+  geom_point(aes(Petal.Length, Petal.Width, color=Species, alpha=0.5, size=2)) +
+  geom_point(aes(Petal.Length, Petal.Width, shape=factor(iris_redefine$centroid))) +
+  geom_point(aes(iris_redefine$Petal.Length, iris_redefine$Petal.Width, size = 2, shape = factor(1,1,1)))
+g
+```
+
