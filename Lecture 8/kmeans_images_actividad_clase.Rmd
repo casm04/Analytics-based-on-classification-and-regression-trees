@@ -1,0 +1,98 @@
+---
+title: "K-means"
+author: "Cesar A. Sanchez"
+date: "6/23/2020"
+output: html_document
+---
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+library(imager)
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Extracting dominant colours from pictures
+
+```{r}
+#install.packages("imager")
+# library(imager)
+file <- "autumn_drawing_walking_82963_320x480.jpg"
+#file
+im <- load.image(file)
+plot(im)
+#file
+```
+
+```{r}
+library(tidyverse)
+bdf <- as.data.frame(im, wide="c")
+bdf
+```
+
+```{r}
+# set.seed(27)
+# 
+# centers <- tibble(
+#   cluster = factor(1:3), 
+#   num_points = c(100, 150, 50),  # number points in each cluster
+#   x1 = c(5, 0, -3),              # x1 coordinate of cluster center
+#   x2 = c(-1, 1, -2)              # x2 coordinate of cluster center
+# )
+# centers 
+# 
+# centers <- tibble(
+#   cluster = factor(1:3), 
+#   num_points = c(100, 150, 50),  # number points in each cluster
+#   x1 = c(5, 0, -3),              # x1 coordinate of cluster center
+#   x2 = c(-1, 1, -2)              # x2 coordinate of cluster center
+# )
+# centers 
+```
+
+
+```{r}
+points <- select(bdf,c.1,c.2,c.3)
+points
+```
+
+```{r}
+kclust <- kmeans(points, centers = 3,)
+kclust
+```
+
+```{r}
+data.frame(x =0, y = 0)
+centers <- as_tibble(kclust$centers)
+
+x = c() 
+y = c()
+centers_rgb = c()
+color_vector = c()
+for (i in 1:length(centers)){
+  for (j in 1:length(centers)){
+    color_vector[j] <- centers[i,j]
+  }
+  centers_rgb[i] <- rgb(color_vector[1],color_vector[2],color_vector[3])
+  x[i] <- 0
+  y[i] <- i-1
+}
+
+```
+```{r}
+# x = c(0, 0, 0) 
+# y = c(0, 1, 2)
+# c = c(c1,c2,c3)
+# df = data.frame(x, y, c) 
+df = data.frame(x, y, centers_rgb)
+df
+```
+
+```{r}
+ggplot(df, aes(x, y)) + 
+  geom_point(size = 25,  color = c)
+```
