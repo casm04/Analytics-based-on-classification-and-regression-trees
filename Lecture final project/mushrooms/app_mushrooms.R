@@ -103,7 +103,7 @@ tree_opt <- function(data, splt, y){
         ) %>% set_engine("xgboost", verbose = 2) %>%  fit(form, data = data[train,])
     # randomForest
     rf_model <-
-        rand_forest(trees = 10, mtry = 5, mode = engine[2]) %>% 
+        rand_forest(trees = 20, mtry = 5, mode = engine[2]) %>% 
         set_engine("randomForest",
                    # importance = T to have permutation score calculated
                    importance = T,
@@ -159,10 +159,10 @@ ui <- fluidPage(
         tabPanel("Mushroom Dataset analysis",
                  h2(a("Mushrooms Dataset", href="https://www.kaggle.com/kopylovlvad/mushrooms-classification-with-decision-tree")),
                  #h1("Favor de incluir el logo correspondiente a cada paquete elegido."),
-                 uiOutput(outputId = 'logo'),
                  p("The Mushrooms dataset comes from", strong('kaggle'), "for classification proposes"),
                  p("The header of this page links you to:"),
                  p("https://www.kaggle.com/kopylovlvad/mushrooms-classification-with-decision-tree",style="color:blue"),
+                 uiOutput(outputId = 'logo'),
                  selectInput("mushroomvar", "Choose a comparison variable vs class of mushroom",
                              list('variable' = mushroom_variables()) # hacer una lista limpia con los paquetes principales
                  ),
@@ -187,15 +187,20 @@ ui <- fluidPage(
                                       bootstrap samples, are combined to produce 
                                       an output with lower variance.', style="color:firebrick"),
                              br(),
-                             column(5,
+                             column(4,
                                     h2('Model Parameters'),
                                     verbatimTextOutput('rf_mod')
                                     ),
-                             column(3,
+                             column(2,
                                     h2('Confusion Matrix'),
                                     br(),
                                     verbatimTextOutput("rf_conf_mtx")
-                                    )
+                                    ),
+                             column(6,
+                                    h2('Model Evaluation'),
+                                    br(),
+                                    verbatimTextOutput('rf_conf_eval')
+                             )
                          )
                         ),
                      tabPanel("Bagging",
@@ -206,15 +211,20 @@ ui <- fluidPage(
                                    repeatedly using multiple bootstraped subsets of the data and averaging 
                                    the models. Here, each tree is build independently to the others.',style="color:blue" ),
                             br(),
-                          column(5,
+                          column(4,
                                  h2('Model Parameters'),
                                  verbatimTextOutput('bag_mod')
-                          ),
-                          column(3,
+                                ),
+                          column(2,
                                  h2('Confusion Matrix'),
                                  br(),
                                  verbatimTextOutput("bag_conf_mtx")
-                          )
+                                ),
+                          column(6,
+                                 h2('Model Evaluation'),
+                                 br(),
+                                 verbatimTextOutput('bag_conf_eval')
+                                )
                         )
                      ),
                      tabPanel("Boosting",
@@ -225,15 +235,22 @@ ui <- fluidPage(
                               learners fitting simple models to the data and then analysing 
                               data for errors.',style="color:green"),
                             br(),
-                          column(5,
+                          column(4,
                                  h2('Model Parameters'),
                                  verbatimTextOutput('boos_mod')
                                 ),
-                          column(3,
+                          column(2,
                                  h2('Confusion Matrix'),
                                  br(),
                                  verbatimTextOutput("bos_conf_mtx")
-                          )
+                                 ),
+                          column(6,
+                                 h2('Model Evaluation'),
+                                 br(),
+                                 verbatimTextOutput('boos_conf_eval')
+                                )
+                          
+                          
                         )
                      )
                  )
@@ -273,29 +290,47 @@ mushroom_df <- data.frame(mushroom)
     
     mushroom_df <- catego_change(data.frame(mushroom),'class')
     tree_ <- tree_opt(data = mushroom_df, splt = 0.80, y ='class')
-    
+    # Random Forest
     output$rf_conf_mtx <- renderPrint({
             as.table(tree_$RandomForest$table)
         })
     output$rf_mod <- renderPrint({
         tree_$Rf_mod$spec
     })
+    output$rf_conf_eval <- renderPrint({
+        as.table(tree_$RandomForest$byClass)
+    })
+    #Boosting
     output$bos_conf_mtx <- renderPrint({
         as.table(tree_$Boosted$table)
     })
     output$boos_mod <- renderPrint({
         tree_$Boos_mod$spec
     })
+    output$boos_conf_eval <- renderPrint({
+        as.table(tree_$Boosted$byClass)
+    })
+    #Bagging
     output$bag_conf_mtx <- renderPrint({
         as.table(tree_$Bagger$table)
     })
     output$bag_mod <- renderPrint({
         tree_$Bag_mod$base_model
     })
+    output$bag_conf_eval <- renderPrint({
+        as.table(tree_$Bagger$byClass)
+    })
+    
     output$link <- renderUI({
         my_test <- tags$iframe(src='https://datascienceplus.com/mushrooms-classification-part-1/', height=600, width=600)
         print(my_test)
     })
+    image_url <- 'https://datascienceplus.com/wp-content/uploads/2018/02/mushroom-glossary.jpg'
+    output$logo <- renderUI(
+        # tags$img(src='https://raw.githubusercontent.com/rstudio/hex-stickers/master/PNG/tune.png',height=200,widht=160)
+        # tags$img(src=paste0("./PNG/", input$state, ".png"),height=100,widht=100)
+        tags$img(src=paste0(image_url),height=200,widht=300)
+    )
 }
 
 # Run the application 
