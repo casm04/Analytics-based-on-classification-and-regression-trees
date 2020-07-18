@@ -1,0 +1,384 @@
+---
+title: "Decision Trees Mushrooms"
+author: "Cesar A. Sanchez"
+date: "7/12/2020"
+input: https://www.kaggle.com/kopylovlvad/mushrooms-classification-with-decision-tree/data?select=mushrooms.csv
+output: html_notebook
+---
+
+Mushrooms data set
+
+Attribute Information: (classes: edible=e, poisonous=p)
+cap-shape: bell=b,conical=c,convex=x,flat=f, knobbed=k,sunken=s
+cap-surface: fibrous=f,grooves=g,scaly=y,smooth=s
+cap-color: brown=n,buff=b,cinnamon=c,gray=g,green=r,pink=p,purple=u,red=e,white=w,yellow=y
+bruises: bruises=t,no=f
+odor: almond=a,anise=l,creosote=c,fishy=y,foul=f,musty=m,none=n,pungent=p,spicy=s
+gill-attachment: attached=a,descending=d,free=f,notched=n
+gill-spacing: close=c,crowded=w,distant=d
+gill-size: broad=b,narrow=n
+gill-color: black=k,brown=n,buff=b,chocolate=h,gray=g, green=r,orange=o,pink=p,purple=u,red=e,white=w,yellow=y
+stalk-shape: enlarging=e,tapering=t
+stalk-root: bulbous=b,club=c,cup=u,equal=e,rhizomorphs=z,rooted=r,missing=?
+stalk-surface-above-ring: fibrous=f,scaly=y,silky=k,smooth=s
+stalk-surface-below-ring: fibrous=f,scaly=y,silky=k,smooth=s
+stalk-color-above-ring: brown=n,buff=b,cinnamon=c,gray=g,orange=o,pink=p,red=e,white=w,yellow=y
+stalk-color-below-ring: brown=n,buff=b,cinnamon=c,gray=g,orange=o,pink=p,red=e,white=w,yellow=y
+veil-type: partial=p,universal=u
+veil-color: brown=n,orange=o,white=w,yellow=y
+ring-number: none=n,one=o,two=t
+ring-type: cobwebby=c,evanescent=e,flaring=f,large=l,none=n,pendant=p,sheathing=s,zone=z
+spore-print-color: black=k,brown=n,buff=b,chocolate=h,green=r,orange=o,purple=u,white=w,yellow=y
+population: abundant=a,clustered=c,numerous=n,scattered=s,several=v,solitary=y
+habitat: grasses=g,leaves=l,meadows=m,paths=p,urban=u,waste=w,woods=d
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(ggplot2)
+library(ggmosaic)
+library (randomForest)
+library(moderndive)
+library(tidyverse)
+library(patchwork)
+library(tidymodels)
+library(modeldata)
+library(baguette)
+library(ROCR)
+library(randomForest)
+library(JOUSBoost)
+library(caret)
+```
+
+```{r}
+mushroom <- read.csv("C:\\Users\\cesarasa\\Documents\\CASM stuff\\Maestria Ciencia de Datos ITESO\\Verano2020\\Arboles de regresion\\Lecture final project\\datasets_478_974_mushrooms.csv")
+#str(mushroom)
+```
+cap-shape: bell=b,conical=c,convex=x,flat=f, knobbed=k,sunken=s
+cap-surface: fibrous=f,grooves=g,scaly=y,smooth=s
+cap-color: brown=n,buff=b,cinnamon=c,gray=g,green=r,pink=p,purple=u,red=e,white=w,yellow=y
+bruises: bruises=t,no=f
+odor: almond=a,anise=l,creosote=c,fishy=y,foul=f,musty=m,none=n,pungent=p,spicy=s
+gill-attachment: attached=a,descending=d,free=f,notched=n
+gill-spacing: close=c,crowded=w,distant=d
+gill-size: broad=b,narrow=n
+gill-color: black=k,brown=n,buff=b,chocolate=h,gray=g, green=r,orange=o,pink=p,purple=u,red=e,white=w,yellow=y
+stalk-shape: enlarging=e,tapering=t
+stalk-root: bulbous=b,club=c,cup=u,equal=e,rhizomorphs=z,rooted=r,missing=?
+stalk-surface-above-ring: fibrous=f,scaly=y,silky=k,smooth=s
+stalk-surface-below-ring: fibrous=f,scaly=y,silky=k,smooth=s
+stalk-color-above-ring: brown=n,buff=b,cinnamon=c,gray=g,orange=o,pink=p,red=e,white=w,yellow=y
+stalk-color-below-ring: brown=n,buff=b,cinnamon=c,gray=g,orange=o,pink=p,red=e,white=w,yellow=y
+veil-type: partial=p,universal=u
+veil-color: brown=n,orange=o,white=w,yellow=y
+ring-number: none=n,one=o,two=t
+ring-type: cobwebby=c,evanescent=e,flaring=f,large=l,none=n,pendant=p,sheathing=s,zone=z
+spore-print-color: black=k,brown=n,buff=b,chocolate=h,green=r,orange=o,purple=u,white=w,yellow=y
+population: abundant=a,clustered=c,numerous=n,scattered=s,several=v,solitary=y
+habitat: grasses=g,leaves=l,meadows=m,paths=p,urban=u,waste=w,woods=d
+```{r}
+# mushroom$class <- as.character(mushroom$class)
+mushroom$class[mushroom$class == 'p'] <- 'poisonous'
+mushroom$class[mushroom$class == 'e'] <- 'edible'
+# mushroom$cap.shape[mushroom$cap.shape == 'b'] <- 'bell'
+# mushroom$cap.shape[mushroom$cap.shape == 'c'] <- 'conical'
+# mushroom$cap.shape[mushroom$cap.shape == 'x'] <- 'convex'
+# mushroom$cap.shape[mushroom$cap.shape == 'f'] <- 'flat'
+# mushroom$cap.shape[mushroom$cap.shape == 'k'] <- 'knobbed'
+# mushroom$cap.shape[mushroom$cap.shape == 's'] <- 'sunken'
+# mushroom$cap.surface[mushroom$cap.surface == 'f'] <- 'fibrous'
+# mushroom$cap.surface[mushroom$cap.surface == 'g'] <- 'grooves'
+# mushroom$cap.surface[mushroom$cap.surface == 'y'] <- 'scaly'
+# mushroom$cap.surface[mushroom$cap.surface == 's'] <- 'smooth'
+# cap-color: brown=n,buff=b,cinnamon=c,gray=g,green=r,pink=p,purple=u,red=e,white=w,yellow=y
+# mushroom$cap.color[mushroom$cap.color == 'n'] <- 'brown'
+# mushroom$cap.color[mushroom$cap.color == 'b'] <- 'buff'
+# mushroom$cap.color[mushroom$cap.color == 'c'] <- 'cinnamon'
+# mushroom$cap.color[mushroom$cap.color == 'g'] <- 'gray'
+# mushroom$cap.color[mushroom$cap.color == 'r'] <- 'green'
+# mushroom$cap.color[mushroom$cap.color == 'p'] <- 'pink'
+# mushroom$cap.color[mushroom$cap.color == 'u'] <- 'purple'
+# mushroom$cap.color[mushroom$cap.color == 'p'] <- 'pink'
+```
+
+```{r}
+glimpse(mushroom)
+```
+
+
+```{r}
+g <- ggplot(mushroom,aes(cap.shape))
+g + geom_bar(aes(fill=class),width=0.5) +
+  theme(axis.text.x = element_text(angle=0, vjust=0.7)) +
+  labs(title="Mushroom edible and poison by cap shape",
+       subtitle="cap-shape: bell=b,conical=c,convex=x,flat=f, knobbed=k,sunken=s")
+```
+
+```{r}
+g <- ggplot(mushroom,aes(cap.color))
+g + geom_bar(aes(fill=class),width=0.5) +
+  theme(axis.text.x = element_text(angle=0, vjust=0.7)) +
+  labs(title="Mushroom edible and poison by Cap Color",
+       subtitle="cap-color: brown=n,buff=b,cinnamon=c,gray=g,green=r,pink=p,purple=u,red=e,white=w,yellow=y")
+```
+
+```{r}
+g <- ggplot(mushroom,aes(odor))
+g + geom_bar(aes(fill=class), color='black',width=1.0) +
+  theme(axis.text.x = element_text(angle=0, vjust=0.7)) +
+  labs(title="Mushroom edible and poison by Odor",
+       subtitle="odor: almond=a,anise=l,creosote=c,fishy=y,foul=f,musty=m,none=n,pungent=p,spicy=s")
+
+#ggplot(mpg, aes(x = hwy)) + geom_histogram(aes(y=..density..), color = "grey30", fill = "blue",alpha=0.5) #+geom_density(alpha = .2, fill = "antiquewhite3") + labs(title="Bin width 1")
+```
+
+
+```{r}
+g <- ggplot(mushroom,aes(population))
+g + geom_bar(aes(fill=class), color='black', width=1) +
+  theme(axis.text.x = element_text(angle=0, vjust=0.7)) +
+  labs(title="Mushroom edible and poison by population of mushroom",
+       subtitle="population: abundant=a,clustered=c,numerous=n,scattered=s,several=v,solitary=y")
+```
+
+```{r}
+g <- ggplot(mushroom,aes(gill.color))
+g + geom_bar(aes(fill=class), color='black', width=1.0) +
+  theme(axis.text.x = element_text(angle=0, vjust=0.7)) +
+  labs(title="Mushroom edible and poison by gill color",
+       subtitle="black=k,brown=n,buff=b,chocolate=h,gray=g, green=r,orange=o,pink=p,purple=u,red=e,white=w,yellow=y")
+```
+
+
+```{r}
+ggplot(mushroom) + 
+   geom_mosaic(aes(x = product(odor), fill=class)) +
+  ggplot2::labs(x='odor',title='f(odor | class)', subtitle="x:almond=a,anise=l,creosote=c,fishy=y,foul=f,musty=m,none=n,pungent=p,spicy=s") + 
+  facet_grid(cols = vars(odor))
+  #facet_grid(rows = vars(odor), cols = vars(cap.color))
+# + facet_grid(class~.)
+```
+
+
+```{r}
+ggplot(mushroom) + 
+   geom_mosaic(aes(x = product(cap.color), fill=class)) +
+  ggplot2::labs(x='cap.color',title='f(cap.color| class)', subtitle="x:brown=n,buff=b,cinnamon=c,gray=g,green=r,pink=p,purple=u,red=e,white=w,yellow=y") + 
+  facet_grid(cols = vars(cap.color))
+```
+
+```{r}
+ggplot(mushroom) + 
+   geom_mosaic(aes(x = product(population), fill=class)) +
+  ggplot2::labs(x='population',title='f(population | class)', subtitle="abundant=a,clustered=c,numerous=n,scattered=s,several=v,solitary=y") + 
+  facet_grid(cols = vars(population))
+# + facet_grid(class~.)
+```
+
+
+```{r}
+ggplot(mushroom) + 
+   geom_mosaic(aes(x = product(gill.color), fill=class)) +
+  ggplot2::labs(x='gill.color',title='f(gill.color| class)', subtitle="x:black=k,brown=n,buff=b,chocolate=h,gray=g, green=r,orange=o,pink=p,purple=u,red=e,white=w,yellow=y") + 
+  facet_grid(cols = vars(gill.color))
+```
+
+```{r}
+ggplot(mushroom) + 
+   geom_mosaic(aes(x = product(cap.surface ), fill=class)) +
+  ggplot2::labs(x='cap.surface',title='f(gill.color| class)', subtitle="x:fibrous=f,grooves=g,scaly=y,smooth=s") + 
+  facet_grid(cols = vars(cap.surface ))
+```
+
+```{r}
+
+ggplot(mushroom) + 
+   geom_mosaic(aes(x = product(habitat), fill=class)) +
+  ggplot2::labs(x='habitat',title='f(gill.color| class)', subtitle="x:grasses=g,leaves=l,meadows=m,paths=p,urban=u,waste=w,woods=d") + 
+  facet_grid(cols = vars(habitat ))
+```
+
+
+```{r}
+g1 <- ggplot(mushroom) + 
+   geom_mosaic(aes(x = product(odor), fill=class)) +
+  ggplot2::labs(x='odor',title='f(odor | class)', subtitle="x:almond=a,anise=l,creosote=c,fishy=y,foul=f,musty=m,none=n,pungent=p,spicy=s") + 
+  facet_grid(cols = vars(odor))
+  #facet_grid(rows = vars(odor), cols = vars(cap.color))
+# + facet_grid(class~.)
+g2 <- ggplot(mushroom) + 
+   geom_mosaic(aes(x = product(cap.color), fill=class)) +
+  ggplot2::labs(x='cap.color',title='f(cap.color| class)', subtitle="x:brown=n,buff=b,cinnamon=c,gray=g,green=r,pink=p,purple=u,red=e,white=w,yellow=y") + 
+  facet_grid(cols = vars(cap.color))
+
+g3 <- ggplot(mushroom) + 
+   geom_mosaic(aes(x = product(population), fill=class)) +
+  ggplot2::labs(x='population',title='f(population | class)', subtitle="abundant=a,clustered=c,numerous=n,scattered=s,several=v,solitary=y") + 
+  facet_grid(cols = vars(population))
+# + facet_grid(class~.)
+g4 <- ggplot(mushroom) + 
+   geom_mosaic(aes(x = product(gill.color), fill=class)) +
+  ggplot2::labs(x='gill.color',title='f(gill.color| class)', subtitle="x:black=k,brown=n,buff=b,chocolate=h,gray=g, green=r,orange=o,pink=p,purple=u,red=e,white=w,yellow=y") + 
+  facet_grid(cols = vars(gill.color))
+
+#g1/g2
+```
+
+FUll exploration  with a contingence Table to evaluate if a mushroom is poisonous or edible depending the
+feature assosiated
+```{r}
+mush_features <- colnames(mushroom)[-1]
+table_res <- lapply(mush_features, function(x) {table(mushroom$class, mushroom[,x])})
+names(table_res) <- mush_features
+table_res
+```
+
+
+###########################################################################################
+Insert decision Tree model for Random Forest to classify  edible or poisonous mushroom
+###########################################################################################
+
+```{r}
+library(FeatureHashing)
+library(xgboost)
+mush <- hashed.model.matrix(c("habitat", "population"), mushroom, hash.size = 10,
+                             create.mapping = TRUE)
+mapping <- hash.mapping(mush)
+mean(duplicated(mapping))
+
+bst <- xgboost(data = mush, label = mushroom$class, nround = 10, params = list(
+  booster = "gbtree",
+  objective = "binary:logistic",
+  eval_metric = "auc"
+))
+```
+
+```{r}
+# type_mush <- as.factor(c(mushroom$.))
+# unclass(type_mush)
+mushroom_df <- data.frame(mushroom)
+mushroom_df$class <- as.factor(mushroom$class)
+for (name_ in colnames(mushroom_df)[-1]){
+     type_mush <- as.factor(c(mushroom[[name_]]))
+     mushroom_df[name_] <- unclass(type_mush)
+}
+
+```
+
+```{r}
+# mushroom_df <- data.frame(mushroom)
+# mush_features_lst <- list()
+# i = 0
+# for (name_ in colnames(mushroom_df)[-1]){
+#     mush_features_lst[name_] <- name_
+#     i<- i+1
+# }
+```
+
+
+```{r}
+# set.seed(101) # Set Seed so that same sample can be reproduced in future also
+# Now Selecting 75% of data as sample from total 'n' rows of the data  
+sample <- sample.int(n = nrow(mushroom_df), size = floor(.75*nrow(mushroom_df)), replace = F)
+train_mushroom <- mushroom_df[sample, ]
+test_mushroom  <- mushroom_df[-sample, ]
+# (l <- sapply(iris, function(x) is.factor(x)))
+```
+
+```{r}
+library(randomForest)
+# set.seed(69)
+rf_model<-rand_forest(trees = 25, mtry = 4, mode = "classification") %>%
+#rf_model<-randomForest(trees = 25, mtry = 4, mode = "classification") %>% 
+  set_engine("randomForest",
+# importance = T to have permutation score calculated
+  importance=TRUE,
+# localImp=T for randomForestExplainer(next post)
+  localImp = T, ) 
+#%>% 
+ # translate()
+rf_model
+```
+
+
+```{r}
+rf_mushroom = rf_model %>% 
+  fit(class~., data=train_mushroom)
+rf_mushroom
+```
+
+generate the predicted value
+generate the  confusion matrix to evaluted the model
+```{r}
+pred  = predict(rf_mushroom, test_mushroom)
+library(caret)
+c_ <- confusionMatrix(pred$.pred_class,as.factor(test_mushroom$class))
+c_
+```
+
+
+```{r}
+tree_opt <- function(data, splt, y){
+  # engine 
+  engine <- c('C5.0','classification')
+  
+  # formula 
+  form <- reformulate(termlabels = c('.'), response = c(y))
+  # training split
+  # train <- sample(1:nrow(data), nrow(data)*splt)
+  # sample <- sample.int(n = nrow(data), size = floor(splt*nrow(data)), replace = F)
+  train <- sample.int(n = nrow(data), size = floor(splt*nrow(data)), replace = F)
+  # train <- data[sample, ]
+  # test  <- data[-sample, ]
+  # Bagger
+  ctrl <- control_bag(var_imp = TRUE)
+  bagg <- bagger(form, data = data[train,], base_model = engine[1])
+  # boosted tree model 
+  bt_model <-
+    boost_tree(
+      learn_rate = 0.3,
+      trees = 5,
+      tree_depth = 6,
+      min_n = 1,
+      sample_size = 1,
+      mode = engine[2]
+    ) %>% set_engine("xgboost", verbose = 2) %>%  fit(form, data = data[train,])
+  # randomForest
+  rf_model <-
+  rand_forest(trees = 10, mtry = 5, mode = engine[2]) %>% 
+    set_engine("randomForest",
+    # importance = T to have permutation score calculated
+    importance = T,
+    # localImp=T for randomForestExplainer(next post)
+    localImp = T,) %>% 
+    fit(form, data = data[train,])
+  # predictions 
+  info.bag <- predict(bagg, data[-train,])
+  info.bt <- predict(bt_model, data[-train,])
+  info.rf <- predict(rf_model, data[-train,])
+  # Metrics
+
+  acc.bag <- confusionMatrix(info.bag$.pred_class, as.factor(data[-train,][[y]]))
+  acc.bt <- confusionMatrix(info.bt$.pred_class, as.factor(data[-train,][[y]]))
+  acc.rf <- confusionMatrix(info.rf$.pred_class, as.factor(data[-train,][[y]]))
+  accuracy <- c(acc.bag$overall[1], acc.bt$overall[1], acc.rf$overall[1])
+
+  # Result
+  
+  model <- c('Bagger', 'Boosted', 'RandomForest')
+  data.frame(model, accuracy)
+  #conf_matrix <- data.frame(Bagger=acc.bag, Boosted=acc.bt, RandomForest=acc.rf)
+
+  return(list(Bagger=acc.bag, Boosted=acc.bt, RandomForest=acc.rf,
+              Bag_mod=bagg, Boos_mod=bt_model, Rf_mod=rf_model))
+}
+```
+
+```{r}
+t <- tree_opt(data = mushroom_df, splt = 0.80, y ='class')
+```
+
